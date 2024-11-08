@@ -23,6 +23,8 @@ import { ScrollbarVisibility } from '../../../common/scrollable.js';
 import './inputBox.css';
 import * as nls from '../../../../nls.js';
 import { MutableDisposable, type IDisposable } from '../../../common/lifecycle.js';
+import DOMPurify from '../../dompurify/dompurify.js';
+import { escapeDoubleQuotes } from '../../htmlContent.js';
 
 
 const $ = dom.$;

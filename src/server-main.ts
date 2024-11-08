@@ -19,6 +19,7 @@ import { product } from './bootstrap-meta.js';
 import * as perf from './vs/base/common/performance.js';
 import { INLSConfiguration } from './vs/nls.js';
 import { IServerAPI } from './vs/server/node/remoteExtensionHostAgentServer.js';
+import DOMPurify from './vs/base/browser/dompurify/dompurify.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -158,7 +159,7 @@ function sanitizeStringArg(val: any): string | undefined {
 	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
 		val = val.pop(); // take the last item
 	}
-	return typeof val === 'string' ? val : undefined;
+	return typeof val === 'string' ? DOMPurify.sanitize(val) : undefined;
 }
 
 /**
