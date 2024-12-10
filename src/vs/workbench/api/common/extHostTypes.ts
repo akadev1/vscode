@@ -22,6 +22,7 @@ import { FileSystemProviderErrorCode, markAsFileSystemProviderError } from '../.
 import { RemoteAuthorityResolverErrorCode } from '../../../platform/remote/common/remoteAuthorityResolver.js';
 import { CellEditType, ICellMetadataEdit, IDocumentMetadataEdit, isTextStreamMime } from '../../contrib/notebook/common/notebookCommon.js';
 import { IRelativePatternDto } from './extHost.protocol.js';
+import { TextEditorSelectionSource } from '../../../platform/editor/common/editor.js';
 
 /**
  * @deprecated
@@ -1943,11 +1944,15 @@ export enum DecorationRangeBehavior {
 }
 
 export namespace TextEditorSelectionChangeKind {
-	export function fromValue(s: string | undefined) {
+	export function fromValue(s: TextEditorSelectionSource | string | undefined) {
 		switch (s) {
 			case 'keyboard': return TextEditorSelectionChangeKind.Keyboard;
 			case 'mouse': return TextEditorSelectionChangeKind.Mouse;
-			case 'api': return TextEditorSelectionChangeKind.Command;
+			case 'api':
+			case TextEditorSelectionSource.PROGRAMMATIC:
+			case TextEditorSelectionSource.JUMP:
+			case TextEditorSelectionSource.NAVIGATION:
+				return TextEditorSelectionChangeKind.Command;
 		}
 		return undefined;
 	}
@@ -2144,6 +2149,41 @@ export class TerminalCompletionItem implements vscode.TerminalCompletionItem {
 	}
 }
 
+
+/**
+ * Represents a collection of {@link CompletionItem completion items} to be presented
+ * in the editor.
+ */
+export class TerminalCompletionList<T extends TerminalCompletionItem = TerminalCompletionItem> {
+
+	/**
+	 * Resources should be shown in the completions list
+	 */
+	resourceRequestConfig?: TerminalResourceRequestConfig;
+
+	/**
+	 * The completion items.
+	 */
+	items: T[];
+
+	/**
+	 * Creates a new completion list.
+	 *
+	 * @param items The completion items.
+	 * @param isIncomplete The list is not complete.
+	 */
+	constructor(items?: T[], resourceRequestConfig?: TerminalResourceRequestConfig) {
+		this.items = items ?? [];
+		this.resourceRequestConfig = resourceRequestConfig;
+	}
+}
+
+export interface TerminalResourceRequestConfig {
+	filesRequested?: boolean;
+	foldersRequested?: boolean;
+	cwd?: vscode.Uri;
+	pathSeparator: string;
+}
 
 export enum TaskRevealKind {
 	Always = 1,
@@ -4115,6 +4155,14 @@ export enum TestRunProfileKind {
 	Coverage = 3,
 }
 
+export class TestRunProfileBase {
+	constructor(
+		public readonly controllerId: string,
+		public readonly profileId: number,
+		public readonly kind: vscode.TestRunProfileKind,
+	) { }
+}
+
 @es5ClassCompat
 export class TestRunRequest implements vscode.TestRunRequest {
 	constructor(
@@ -4227,7 +4275,7 @@ export class FileCoverage implements vscode.FileCoverage {
 		public statementCoverage: vscode.TestCoverageCount,
 		public branchCoverage?: vscode.TestCoverageCount,
 		public declarationCoverage?: vscode.TestCoverageCount,
-		public fromTests: vscode.TestItem[] = [],
+		public includesTests: vscode.TestItem[] = [],
 	) {
 	}
 }
