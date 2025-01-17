@@ -1606,7 +1606,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private async triggerSearch(query: string): Promise<void> {
-		const progressRunner = this.editorProgressService.show(true);
+		const progressRunner = this.editorProgressService.show(true, 800);
 		this.viewState.tagFilters = new Set<string>();
 		this.viewState.extensionFilters = new Set<string>();
 		this.viewState.featureFilters = new Set<string>();
@@ -1679,7 +1679,7 @@ export class SettingsEditor2 extends EditorPane {
 		for (const g of this.defaultSettingsEditorModel.settingsGroups.slice(1)) {
 			for (const sect of g.sections) {
 				for (const setting of sect.settings) {
-					fullResult.filterMatches.push({ setting, matches: [], matchType: SettingMatchType.None, score: 0 });
+					fullResult.filterMatches.push({ setting, matches: [], matchType: SettingMatchType.None, keyMatchSize: 0, score: 0 });
 				}
 			}
 		}
